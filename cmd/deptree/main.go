@@ -3,6 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
+
+	"bitbucket.org/yanndr/deptree"
 )
 
 type nameFlag []string
@@ -27,4 +30,12 @@ func main() {
 	flag.Parse()
 
 	fmt.Printf("%s \n", names)
+
+	_, err := deptree.New(path)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	//fmt.Println(dt)
 }
