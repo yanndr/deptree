@@ -13,12 +13,20 @@ func TestToJSON(t *testing.T) {
 		},
 	}
 
+	dtwithDep := DependencyTree{
+		&distribution{
+			Name:         "test With dep",
+			Dependencies: dt,
+		},
+	}
+
 	tt := []struct {
 		name   string
 		input  DependencyTree
 		output string
 	}{
 		{name: "simple", input: dt, output: `{"test":{}}`},
+		{name: "with dependencies", input: dtwithDep, output: `{"test With dep":{"test":{}}}`},
 	}
 
 	for _, tc := range tt {

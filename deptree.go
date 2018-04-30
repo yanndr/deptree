@@ -22,8 +22,8 @@ type Resolver interface {
 type DependencyTree []*distribution
 
 type distribution struct {
-	Name         string          `json:",omitempty"`
-	Dependencies []*distribution `json:",omitempty"`
+	Name         string         `json:",omitempty"`
+	Dependencies DependencyTree `json:",omitempty"`
 }
 
 func (d DependencyTree) ToJSON() string {
@@ -36,6 +36,7 @@ func (d DependencyTree) ToJSON() string {
 			buffer.WriteString("{}")
 			break
 		}
+		buffer.WriteString(v.Dependencies.ToJSON())
 	}
 	buffer.WriteString("}")
 	return buffer.String()
