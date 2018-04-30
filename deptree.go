@@ -69,21 +69,30 @@ func (r *perlDepTreeResolver) Resolve(distributions ...string) ([]*Distribution,
 		}
 
 		for _, dep := range dependencies {
-
 			deps, err := r.Resolve(dep)
 			for _, dep := range deps {
-				distro.Dependencies = append(distro.Dependencies, dep)
+				if !contains(distro.Dependencies, dep) {
+					distro.Dependencies = append(distro.Dependencies, dep)
+				}
 			}
 
 			if err != nil {
 				return nil, err
 			}
-
 		}
 		r.cache[d] = distro
 	}
 
 	return result, nil
+}
+
+func contains(ds []*Distribution, d *Distribution) bool {
+	for _, v := range ds {
+		if v.Name == d.Name {
+			return true
+		}
+	}
+	return false
 }
 
 func (r *perlDepTreeResolver) getDependencies(dist string) ([]string, error) {
