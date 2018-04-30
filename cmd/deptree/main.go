@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -29,13 +30,22 @@ func main() {
 	flag.Var(&names, "name", "Distribition names to resolve; you can define this flag multile time.")
 	flag.Parse()
 
-	fmt.Printf("%s \n", names)
-
-	_, err := deptree.New(path)
+	r, err := deptree.New(path)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	//fmt.Println(dt)
+	deps, err := r.Resolve(names...)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	js, err := json.MarshalIndent(deps, "", "  ")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	fmt.Println(string(js))
 }
