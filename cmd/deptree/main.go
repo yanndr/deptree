@@ -41,7 +41,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println(deps.ToJSON())
+	fmt.Println(deps.ToJSON("  "))
 	// js, err := json.MarshalIndent(deps, "", "  ")
 	// if err != nil {
 	// 	fmt.Println(err)
