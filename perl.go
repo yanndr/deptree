@@ -18,19 +18,27 @@ type perlDepTreeResolver struct {
 	cache           map[string]*distribution
 }
 
+type distributionNotFoundError struct {
+	name string
+}
+
+func (e distributionNotFoundError) Error() string {
+	return fmt.Sprintf("distribution %s not found:", e.name)
+}
+
 //New returns an instance of a perl dependency tree resolver.
 func New(path string) (Resolver, error) {
 	r := &perlDepTreeResolver{
 		path: path,
 	}
 	distroMapPath := fmt.Sprintf("%s/%s", path, distroMapFile)
-	err := decodeFromFile(&r.distributionMap, distroMapPath)
+	err := decodeJSONFromFile(&r.distributionMap, distroMapPath)
 	if err != nil {
 		return nil, fmt.Errorf("error decoding the json file %s, %s", distroMapPath, err)
 	}
 
 	coreModulesPath := fmt.Sprintf("%s/%s", path, coreModulesFile)
-	err = decodeFromFile(&r.coreModules, coreModulesPath)
+	err = decodeJSONFromFile(&r.coreModules, coreModulesPath)
 	if err != nil {
 		return nil, fmt.Errorf("error decoding the json file %s, %s", coreModulesPath, err)
 	}
@@ -73,30 +81,29 @@ func (r *perlDepTreeResolver) Resolve(distributions ...string) (DependencyTree, 
 
 //getDependencies returns the list of distributions requires for a distribution.
 // the function will ignore modules present in the core modules.
-func (r *perlDepTreeResolver) getDependencies(dist string) ([]string, error) {
-	var dependencies []string
-	modules, err := r.getRequiresModules(dist)
+func (r *perlDepTreeResolver) getDependencies(distribution string) ([]string, error) {
+	moduleMap, err := r.getRequiresModules(distribution)
 	if err != nil {
 		return nil, err
 	}
-	for m := range modules {
-		if m == "perl" {
-			continue
-		}
-		i := sort.SearchStrings(r.coreModules, m)
-		if r.coreModules[i] == m {
-			continue
-		}
-		if val, ok := r.distributionMap[m]; ok {
-			dependencies = append(dependencies, val)
-		} else {
-			return nil, fmt.Errorf("get dependencies error: %s not found", m)
-		}
-	}
-	return dependencies, nil
+	modules := r.filterCoreModules(moduleMap)
+
+	return r.getDistributions(modules)
 }
 
-//getRequiresModules returns a map of requires modules/ version for a distribution.
+func (r *perlDepTreeResolver) getDistributions(modules []string) ([]string, error) {
+	var distributions []string
+	for _, m := range modules {
+		if val, ok := r.distributionMap[m]; ok {
+			distributions = append(distributions, val)
+		} else {
+			return nil, distributionNotFoundError{name: m}
+		}
+	}
+	return distributions, nil
+}
+
+//getRequiresModules returns a map of requires modules/version for a distribution.
 func (r *perlDepTreeResolver) getRequiresModules(dist string) (map[string]string, error) {
 	meta := &struct {
 		Prereqs struct {
@@ -107,9 +114,26 @@ func (r *perlDepTreeResolver) getRequiresModules(dist string) (map[string]string
 	}{}
 
 	path := fmt.Sprintf("%s/%s/%s", r.path, dist, metaJSONFile)
-	err := decodeFromFile(meta, path)
+	err := decodeJSONFromFile(meta, path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get modules error: could not decode the file %s, %v", path, err)
 	}
 	return meta.Prereqs.Runtime.Requires, nil
+}
+
+func (r *perlDepTreeResolver) filterCoreModules(modules map[string]string) []string {
+	var result []string
+	for m := range modules {
+		if m == "perl" {
+			continue
+		}
+		i := sort.SearchStrings(r.coreModules, m)
+		if i < len(r.coreModules) && r.coreModules[i] == m {
+			continue
+		}
+
+		result = append(result, m)
+	}
+
+	return result
 }

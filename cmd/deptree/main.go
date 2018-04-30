@@ -27,6 +27,8 @@ func main() {
 
 	flag.StringVar(&path, "path", "./data", "The path to the CPAN folder.")
 	flag.Var(&names, "name", "Distribition names to resolve; you can define this flag multiple time.")
+	flag.Usage = usage
+
 	flag.Parse()
 
 	r, err := deptree.New(path)
@@ -42,10 +44,11 @@ func main() {
 	}
 
 	fmt.Println(deps.ToJSON("  "))
-	// js, err := json.MarshalIndent(deps, "", "  ")
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	os.Exit(1)
-	// }
-	// fmt.Println(string(js))
+}
+
+func usage() {
+	fmt.Fprintf(os.Stderr, "Usage: %s -name distribution \n\n", os.Args[0])
+	fmt.Fprint(os.Stderr, "This command displays the tree of dependency of one or multiple Perl distributions.\neg. deptree -name DateTime -name Specio\n\n")
+	flag.PrintDefaults()
+	fmt.Fprintln(os.Stderr, "")
 }

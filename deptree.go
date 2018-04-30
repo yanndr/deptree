@@ -33,7 +33,6 @@ type DependencyTree []*distribution
 //with the indentantion ident. if the ident is empty, the
 //JSON will be render in one line.
 func (d DependencyTree) ToJSON(indent string) string {
-
 	var buffer bytes.Buffer
 	d.toJSON(&buffer, indent, 0)
 	return buffer.String()
@@ -69,7 +68,7 @@ func newline(dst *bytes.Buffer, indent string, depth int) {
 	}
 }
 
-func decodeFromFile(v interface{}, path string) error {
+func decodeJSONFromFile(v interface{}, path string) error {
 	file, err := os.Open(path)
 	if err != nil {
 		return fmt.Errorf("error opening the file %s , %s", path, err)
