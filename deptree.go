@@ -27,25 +27,27 @@ type perlDepTreeResolver struct {
 	path            string
 	distributionMap map[string]string
 	coreModules     []string
+	cache           map[string]*Distribution
 }
 
 //New returns an instance of a perl dependency tree resolver.
 func New(path string) (Resolver, error) {
-	dt := &perlDepTreeResolver{
+	r := &perlDepTreeResolver{
 		path: path,
 	}
 	distroMapPath := fmt.Sprintf("%s/%s", path, distroMapFile)
-	err := json.DecodeFromFile(&dt.distributionMap, distroMapPath)
+	err := json.DecodeFromFile(&r.distributionMap, distroMapPath)
 	if err != nil {
 		return nil, fmt.Errorf("error decoding the json file %s, %s", distroMapPath, err)
 	}
 
 	coreModulesPath := fmt.Sprintf("%s/%s", path, coreModulesFile)
-	err = json.DecodeFromFile(&dt.coreModules, coreModulesPath)
+	err = json.DecodeFromFile(&r.coreModules, coreModulesPath)
 	if err != nil {
 		return nil, fmt.Errorf("error decoding the json file %s, %s", coreModulesPath, err)
 	}
-	return dt, nil
+	r.cache = make(map[string]*Distribution)
+	return r, nil
 }
 
 func (r *perlDepTreeResolver) Resolve(distributions ...string) ([]*Distribution, error) {
@@ -53,6 +55,12 @@ func (r *perlDepTreeResolver) Resolve(distributions ...string) ([]*Distribution,
 	for _, d := range distributions {
 
 		distro := &Distribution{Name: d}
+
+		if deps, ok := r.cache[d]; ok {
+			distro = deps
+			return result, nil
+		}
+
 		result = append(result, distro)
 
 		dependencies, err := r.getDependencies(d)
@@ -72,7 +80,9 @@ func (r *perlDepTreeResolver) Resolve(distributions ...string) ([]*Distribution,
 			}
 
 		}
+		r.cache[d] = distro
 	}
+
 	return result, nil
 }
 

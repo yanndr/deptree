@@ -27,7 +27,7 @@ func main() {
 	)
 
 	flag.StringVar(&path, "path", "./data", "The path to the CPAN folder.")
-	flag.Var(&names, "name", "Distribition names to resolve; you can define this flag multile time.")
+	flag.Var(&names, "name", "Distribition names to resolve; you can define this flag multiple time.")
 	flag.Parse()
 
 	r, err := deptree.New(path)
