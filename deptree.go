@@ -1,6 +1,7 @@
 package deptree
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -23,6 +24,21 @@ type DependencyTree []*distribution
 type distribution struct {
 	Name         string          `json:",omitempty"`
 	Dependencies []*distribution `json:",omitempty"`
+}
+
+func (d DependencyTree) ToJSON() string {
+
+	var buffer bytes.Buffer
+	buffer.WriteString("{")
+	for _, v := range d {
+		buffer.WriteString(fmt.Sprintf("\"%s\":", v.Name))
+		if v.Dependencies == nil || len(v.Dependencies) == 0 {
+			buffer.WriteString("{}")
+			break
+		}
+	}
+	buffer.WriteString("}")
+	return buffer.String()
 }
 
 func (d distribution) contains(dist *distribution) bool {
@@ -115,16 +131,16 @@ func (r *perlDepTreeResolver) getDependencies(dist string) ([]string, error) {
 	return dependencies, nil
 }
 
-func (dt *perlDepTreeResolver) getRequiresModules(dist string) (map[string]interface{}, error) {
+func (r *perlDepTreeResolver) getRequiresModules(dist string) (map[string]string, error) {
 	meta := &struct {
 		Prereqs struct {
 			Runtime struct {
-				Requires map[string]interface{} `json:"requires"`
+				Requires map[string]string `json:"requires"`
 			} `json:"runtime"`
 		} `json:"prereqs"`
 	}{}
 
-	path := fmt.Sprintf("%s/%s/%s", dt.path, dist, metaJSONFile)
+	path := fmt.Sprintf("%s/%s/%s", r.path, dist, metaJSONFile)
 	err := decodeFromFile(meta, path)
 	if err != nil {
 		return nil, err

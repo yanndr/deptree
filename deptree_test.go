@@ -5,6 +5,32 @@ import (
 	"testing"
 )
 
+func TestToJSON(t *testing.T) {
+	dt := DependencyTree{
+		&distribution{
+			Name:         "test",
+			Dependencies: nil,
+		},
+	}
+
+	tt := []struct {
+		name   string
+		input  DependencyTree
+		output string
+	}{
+		{name: "simple", input: dt, output: `{"test":{}}`},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			result := tc.input.ToJSON()
+			if result != tc.output {
+				t.Fatalf("error, expected %s, got %s", tc.output, result)
+			}
+		})
+	}
+}
+
 func TestResolve(t *testing.T) {
 	tt := []struct {
 		name      string

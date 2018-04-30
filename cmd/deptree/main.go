@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -42,10 +41,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	js, err := json.MarshalIndent(deps, "", "  ")
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	fmt.Println(string(js))
+	fmt.Println(deps.ToJSON())
+	// js, err := json.MarshalIndent(deps, "", "  ")
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	os.Exit(1)
+	// }
+	// fmt.Println(string(js))
 }
