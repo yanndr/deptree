@@ -39,17 +39,14 @@ func New(path string) (Resolver, error) {
 }
 
 func (r *perlDepTreeResolver) Resolve(distributions ...string) (DependencyTree, error) {
-	var result []*distribution
+	var result DependencyTree
 	for _, d := range distributions {
-
-		distro := &distribution{Name: d}
-
-		if deps, ok := r.cache[d]; ok {
-			distro = deps
-			return result, nil
+		if v, ok := r.cache[d]; ok {
+			return append(result, v), nil
 		}
 
-		result = append(result, distro)
+		dist := &distribution{Name: d}
+		result = append(result, dist)
 
 		dependencies, err := r.getDependencies(d)
 		if err != nil {
@@ -59,8 +56,8 @@ func (r *perlDepTreeResolver) Resolve(distributions ...string) (DependencyTree, 
 		for _, dep := range dependencies {
 			deps, err := r.Resolve(dep)
 			for _, dep := range deps {
-				if !distro.contains(dep) {
-					distro.Dependencies = append(distro.Dependencies, dep)
+				if !dist.contains(dep) {
+					dist.Dependencies = append(dist.Dependencies, dep)
 				}
 			}
 
@@ -68,12 +65,14 @@ func (r *perlDepTreeResolver) Resolve(distributions ...string) (DependencyTree, 
 				return nil, err
 			}
 		}
-		r.cache[d] = distro
+		r.cache[d] = dist
 	}
 
 	return result, nil
 }
 
+//getDependencies returns the list of distributions requires for a distribution.
+// the function will ignore modules present in the core modules.
 func (r *perlDepTreeResolver) getDependencies(dist string) ([]string, error) {
 	var dependencies []string
 	modules, err := r.getRequiresModules(dist)
@@ -81,17 +80,23 @@ func (r *perlDepTreeResolver) getDependencies(dist string) ([]string, error) {
 		return nil, err
 	}
 	for m := range modules {
+		if m == "perl" {
+			continue
+		}
 		i := sort.SearchStrings(r.coreModules, m)
-		if i == len(r.coreModules) {
+		if r.coreModules[i] == m {
 			continue
 		}
 		if val, ok := r.distributionMap[m]; ok {
 			dependencies = append(dependencies, val)
+		} else {
+			return nil, fmt.Errorf("get dependencies error: %s not found", m)
 		}
 	}
 	return dependencies, nil
 }
 
+//getRequiresModules returns a map of requires modules/ version for a distribution.
 func (r *perlDepTreeResolver) getRequiresModules(dist string) (map[string]string, error) {
 	meta := &struct {
 		Prereqs struct {
@@ -106,6 +111,5 @@ func (r *perlDepTreeResolver) getRequiresModules(dist string) (map[string]string
 	if err != nil {
 		return nil, err
 	}
-
 	return meta.Prereqs.Runtime.Requires, nil
 }
