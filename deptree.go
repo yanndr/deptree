@@ -29,17 +29,45 @@ type distribution struct {
 func (d DependencyTree) ToJSON() string {
 
 	var buffer bytes.Buffer
-	buffer.WriteString("{")
-	for _, v := range d {
-		buffer.WriteString(fmt.Sprintf("\"%s\":", v.Name))
-		if v.Dependencies == nil || len(v.Dependencies) == 0 {
-			buffer.WriteString("{}")
-			break
-		}
-		buffer.WriteString(v.Dependencies.ToJSON())
-	}
-	buffer.WriteString("}")
+	d.toJson(&buffer, "  ", 0)
 	return buffer.String()
+}
+
+func (d DependencyTree) toJson(dst *bytes.Buffer, ident string, depth int) {
+	dst.WriteString("{")
+	depth++
+	newline(dst, ident, depth)
+	for k, v := range d {
+		dst.WriteString(fmt.Sprintf("\"%s\":", v.Name))
+		if v.Dependencies == nil || len(v.Dependencies) == 0 {
+			dst.WriteString("{}")
+			if k < len(d)-1 {
+				dst.WriteRune(',')
+				newline(dst, ident, depth)
+			} else {
+				newline(dst, ident, depth-1)
+			}
+
+			continue
+		}
+
+		v.Dependencies.toJson(dst, ident, depth)
+		if k < len(d)-1 {
+			dst.WriteRune(',')
+		}
+
+	}
+
+	newline(dst, ident, depth-1)
+	dst.WriteString("}")
+
+}
+
+func newline(dst *bytes.Buffer, indent string, depth int) {
+	dst.WriteByte('\n')
+	for i := 0; i < depth; i++ {
+		dst.WriteString(indent)
+	}
 }
 
 func (d distribution) contains(dist *distribution) bool {

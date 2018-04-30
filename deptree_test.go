@@ -20,6 +20,33 @@ func TestToJSON(t *testing.T) {
 		},
 	}
 
+	multipleDep := DependencyTree{
+		&distribution{
+			Name: "test With multiple dep",
+			Dependencies: DependencyTree{
+				&distribution{
+					Name:         "test",
+					Dependencies: nil,
+				},
+				&distribution{
+					Name:         "test2",
+					Dependencies: nil,
+				},
+			},
+		},
+	}
+
+	multipleRoot := DependencyTree{
+		&distribution{
+			Name:         "dist1",
+			Dependencies: nil,
+		},
+		&distribution{
+			Name:         "dist2",
+			Dependencies: nil,
+		},
+	}
+
 	tt := []struct {
 		name   string
 		input  DependencyTree
@@ -27,6 +54,8 @@ func TestToJSON(t *testing.T) {
 	}{
 		{name: "simple", input: dt, output: `{"test":{}}`},
 		{name: "with dependencies", input: dtwithDep, output: `{"test With dep":{"test":{}}}`},
+		{name: "with multiple dependencies", input: multipleDep, output: `{"test With multiple dep":{"test":{},"test2":{}}}`},
+		{name: "with multiple root", input: multipleRoot, output: `{"dist1":{},"dist2":{}}`},
 	}
 
 	for _, tc := range tt {
