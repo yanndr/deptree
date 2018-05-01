@@ -9,15 +9,17 @@ import (
 
 //Resolver defined the methods of a dependency tree resolver.
 type Resolver interface {
-	Resolve(distributions ...string) (DependencyTree, error)
+	Resolve(distributions ...string) (Distributions, error)
 }
 
-type distribution struct {
+//Distribution or package is the representation of a distrubition.
+// the name of the distribution its dependencies.
+type Distribution struct {
 	Name         string
-	Dependencies DependencyTree
+	Dependencies Distributions
 }
 
-func (d distribution) contains(dist *distribution) bool {
+func (d Distribution) contains(dist *Distribution) bool {
 	for _, dep := range d.Dependencies {
 		if dep.Name == dist.Name {
 			return true
@@ -26,8 +28,8 @@ func (d distribution) contains(dist *distribution) bool {
 	return false
 }
 
-//DependencyTree is the tree of dependecies for distributions.
-type DependencyTree []*distribution
+//Distributions is an array of distribution that represent the tree of dependecies for distributions.
+type Distributions []*Distribution
 
 type distributionNotFoundError struct {
 	name string
@@ -40,13 +42,13 @@ func (e distributionNotFoundError) Error() string {
 //ToJSON export the dependency tree to a JSON format
 //with the indentantion ident. if the ident is empty, the
 //JSON will be render in one line.
-func (d DependencyTree) ToJSON(indent string) string {
+func (d Distributions) ToJSON(indent string) string {
 	var buffer bytes.Buffer
 	d.toJSON(&buffer, indent, 0)
 	return buffer.String()
 }
 
-func (d DependencyTree) toJSON(dst *bytes.Buffer, indent string, depth int) {
+func (d Distributions) toJSON(dst *bytes.Buffer, indent string, depth int) {
 	dst.WriteString("{")
 	depth++
 	newline(dst, indent, depth)

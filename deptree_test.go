@@ -5,29 +5,29 @@ import (
 )
 
 func TestToJSON(t *testing.T) {
-	dt := DependencyTree{
-		&distribution{
+	dt := Distributions{
+		&Distribution{
 			Name:         "test",
 			Dependencies: nil,
 		},
 	}
 
-	dtwithDep := DependencyTree{
-		&distribution{
+	dtwithDep := Distributions{
+		&Distribution{
 			Name:         "test With dep",
 			Dependencies: dt,
 		},
 	}
 
-	multipleDep := DependencyTree{
-		&distribution{
+	multipleDep := Distributions{
+		&Distribution{
 			Name: "test With multiple dep",
-			Dependencies: DependencyTree{
-				&distribution{
+			Dependencies: Distributions{
+				&Distribution{
 					Name:         "test",
 					Dependencies: nil,
 				},
-				&distribution{
+				&Distribution{
 					Name:         "test2",
 					Dependencies: nil,
 				},
@@ -35,23 +35,23 @@ func TestToJSON(t *testing.T) {
 		},
 	}
 
-	multipleRoot := DependencyTree{
-		&distribution{
+	multipleRoot := Distributions{
+		&Distribution{
 			Name:         "dist1",
 			Dependencies: nil,
 		},
-		&distribution{
+		&Distribution{
 			Name:         "dist2",
 			Dependencies: nil,
 		},
 	}
 
-	complex := DependencyTree{
-		&distribution{
+	complex := Distributions{
+		&Distribution{
 			Name:         "dist1",
 			Dependencies: multipleDep,
 		},
-		&distribution{
+		&Distribution{
 			Name:         "dist2",
 			Dependencies: multipleDep,
 		},
@@ -59,7 +59,7 @@ func TestToJSON(t *testing.T) {
 
 	tt := []struct {
 		name   string
-		input  DependencyTree
+		input  Distributions
 		output string
 	}{
 		{name: "simple", input: dt, output: `{"test":{}}`},

@@ -70,16 +70,15 @@ func TestFilterCoreModules(t *testing.T) {
 	}
 }
 
-func TestGetDistributions(t *testing.T) {
+func TestGetDistribution(t *testing.T) {
 	tt := []struct {
 		name   string
-		input  []string
-		output []string
+		input  string
+		output string
 		err    error
 	}{
-		{"Present", []string{"module1"}, []string{"distrib1"}, nil},
-		{"two Present", []string{"module1", "module2"}, []string{"distrib1", "distrib2"}, nil},
-		{"not Present", []string{"module1", "module3"}, nil, distributionNotFoundError{name: "module3"}},
+		{"Present", "module1", "distrib1", nil},
+		{"not Present", "module3", "", distributionNotFoundError{name: "module3"}},
 	}
 
 	r := perlDepTreeResolver{
@@ -88,19 +87,14 @@ func TestGetDistributions(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := r.getDistributions(tc.input)
+			result, err := r.getDistribution(tc.input)
 
 			if err != tc.err {
 				t.Errorf("expected error \"%v\", got error \"%v\"", tc.err, err)
 			}
 
-			if len(result) != len(tc.output) {
-				t.Fatalf("error expected %v result(s) got %v result(s)", len(tc.output), len(result))
-			}
-			for k, v := range result {
-				if v != tc.output[k] {
-					t.Fatalf("error expected %v  got %v", tc.output[k], v)
-				}
+			if result != tc.output {
+				t.Fatalf("error expected %v  got %v", tc.output, result)
 			}
 		})
 	}

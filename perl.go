@@ -15,7 +15,7 @@ type perlDepTreeResolver struct {
 	path            string
 	distributionMap map[string]string
 	coreModules     []string
-	cache           map[string]*distribution
+	cache           map[string]*Distribution
 }
 
 //New returns an instance of a perl dependency tree resolver.
@@ -34,37 +34,37 @@ func New(path string) (Resolver, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error decoding the json file %s, %s", coreModulesPath, err)
 	}
-	r.cache = make(map[string]*distribution)
+	r.cache = make(map[string]*Distribution)
 	return r, nil
 }
 
-func (r *perlDepTreeResolver) Resolve(distributions ...string) (DependencyTree, error) {
-	var result DependencyTree
+func (r *perlDepTreeResolver) Resolve(distributions ...string) (Distributions, error) {
+	var result Distributions
 	for _, d := range distributions {
+
 		if v, ok := r.cache[d]; ok {
-			return append(result, v), nil
+			result = append(result, v)
+			continue
 		}
 
-		dist := &distribution{Name: d}
+		dist := &Distribution{Name: d}
 		result = append(result, dist)
-
 		dependencies, err := r.getDependencies(d)
 		if err != nil {
 			return nil, err
 		}
 
-		for _, dep := range dependencies {
-			deps, err := r.Resolve(dep)
-			for _, dep := range deps {
-				if !dist.contains(dep) {
-					dist.Dependencies = append(dist.Dependencies, dep)
-				}
-			}
+		deps, err := r.Resolve(dependencies...)
+		if err != nil {
+			return nil, err
+		}
 
-			if err != nil {
-				return nil, err
+		for _, dep := range deps {
+			if !dist.contains(dep) {
+				dist.Dependencies = append(dist.Dependencies, dep)
 			}
 		}
+
 		r.cache[d] = dist
 	}
 
@@ -80,19 +80,24 @@ func (r *perlDepTreeResolver) getDependencies(distribution string) ([]string, er
 	}
 	modules := r.filterCoreModules(moduleMap)
 
-	return r.getDistributions(modules)
-}
-
-func (r *perlDepTreeResolver) getDistributions(modules []string) ([]string, error) {
 	var distributions []string
 	for _, m := range modules {
-		if val, ok := r.distributionMap[m]; ok {
-			distributions = append(distributions, val)
-		} else {
-			return nil, distributionNotFoundError{name: m}
+		d, err := r.getDistribution(m)
+		if err != nil {
+			return nil, err
 		}
+		distributions = append(distributions, d)
 	}
 	return distributions, nil
+}
+
+//getDistribution returns the distribution name of a module.
+func (r *perlDepTreeResolver) getDistribution(module string) (string, error) {
+
+	if val, ok := r.distributionMap[module]; ok {
+		return val, nil
+	}
+	return "", distributionNotFoundError{name: module}
 }
 
 //getRequiresModules returns a map of requires modules/version for a distribution.
