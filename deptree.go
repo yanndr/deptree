@@ -29,6 +29,14 @@ func (d distribution) contains(dist *distribution) bool {
 //DependencyTree is the tree of dependecies for distributions.
 type DependencyTree []*distribution
 
+type distributionNotFoundError struct {
+	name string
+}
+
+func (e distributionNotFoundError) Error() string {
+	return fmt.Sprintf("distribution %s not found:", e.name)
+}
+
 //ToJSON export the dependency tree to a JSON format
 //with the indentantion ident. if the ident is empty, the
 //JSON will be render in one line.

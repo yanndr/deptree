@@ -18,14 +18,6 @@ type perlDepTreeResolver struct {
 	cache           map[string]*distribution
 }
 
-type distributionNotFoundError struct {
-	name string
-}
-
-func (e distributionNotFoundError) Error() string {
-	return fmt.Sprintf("distribution %s not found:", e.name)
-}
-
 //New returns an instance of a perl dependency tree resolver.
 func New(path string) (Resolver, error) {
 	r := &perlDepTreeResolver{
