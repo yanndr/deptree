@@ -15,3 +15,17 @@ If you have access to the repo, you can clone the repository in the folder $GOPA
 ```
 git clone git clone https://yanndr@bitbucket.org/yanndr/deptree.git $GOPATH/src/bitbucket.org/yanndr/
 ```
+
+
+## Using
+
+### Docker
+
+
+```
+docker run --rm -it  deptree -name  DateTime 
+```
+
+```
+docker run --rm -it -v $PWD/cmd/deptree/data:/mydata  deptree -name  DateTime -path ./mydata
+```
