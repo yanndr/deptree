@@ -100,7 +100,7 @@ func TestGetDistribution(t *testing.T) {
 	}
 }
 
-func BenchmarkResolve(b *testing.B) {
+func BenchmarkResolveOneByOne(b *testing.B) {
 	path := "./cmd/deptree/data/"
 	dt, err := New(path)
 	if err != nil {
@@ -122,5 +122,35 @@ func BenchmarkResolve(b *testing.B) {
 				b.Fatal(err)
 			}
 		}
+	}
+}
+
+func BenchmarkResolveAllAtOnce(b *testing.B) {
+	path := "./cmd/deptree/data/"
+	dt, err := New(path)
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		b.Fatal(err)
+	}
+	var distribs []string
+	for _, f := range files {
+		if !f.IsDir() {
+			continue
+		}
+
+		distribs = append(distribs, f.Name())
+
+	}
+
+	for n := 0; n < b.N; n++ {
+		_, err := dt.Resolve(distribs...)
+		if err != nil {
+			b.Fatal(err)
+		}
+
 	}
 }
