@@ -2,6 +2,7 @@ package deptree
 
 import (
 	"fmt"
+	"os"
 	"sort"
 )
 
@@ -51,7 +52,10 @@ func (r *perlDepTreeResolver) Resolve(distributions ...string) (Distributions, e
 		result = append(result, dist)
 		dependencies, err := r.getDependencies(d)
 		if err != nil {
-			return nil, err
+			if _, ok := err.(DistributionNotFoundError); ok {
+				return nil, err
+			}
+			return nil, fmt.Errorf("resolve: can't get dependencies of %s: %v", d, err)
 		}
 
 		deps, err := r.Resolve(dependencies...)
@@ -97,7 +101,7 @@ func (r *perlDepTreeResolver) getDistribution(module string) (string, error) {
 	if val, ok := r.distributionMap[module]; ok {
 		return val, nil
 	}
-	return "", distributionNotFoundError{name: module}
+	return "", DistributionNotFoundError{name: "modules3"}
 }
 
 //getRequiresModules returns a map of requires modules/version for a distribution.
@@ -113,6 +117,9 @@ func (r *perlDepTreeResolver) getRequiresModules(dist string) (map[string]string
 	path := fmt.Sprintf("%s/%s/%s", r.path, dist, metaJSONFile)
 	err := decodeJSONFromFile(meta, path)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, DistributionNotFoundError{dist, err}
+		}
 		return nil, fmt.Errorf("get modules error: could not decode the file %s, %v", path, err)
 	}
 	return meta.Prereqs.Runtime.Requires, nil
