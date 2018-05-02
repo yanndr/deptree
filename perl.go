@@ -27,12 +27,15 @@ func New(path string) (Resolver, error) {
 	r := &perlDepTreeResolver{
 		path:         path,
 		readFileFunc: ioutil.ReadFile,
+		cache:        make(map[string]*Distribution),
 	}
+
 	distroMapPath := fmt.Sprintf("%s/%s", path, distroMapFile)
 	data, err := r.readFileFunc(distroMapPath)
 	if err != nil {
 		return nil, fmt.Errorf("deptree: error reading the json file %s, %s", distroMapPath, err)
 	}
+
 	err = json.Unmarshal(data, &r.distributionMap)
 	if err != nil {
 		return nil, fmt.Errorf("deptree: error decoding the json file %s, %s", distroMapPath, err)
@@ -43,14 +46,16 @@ func New(path string) (Resolver, error) {
 	if err != nil {
 		return nil, fmt.Errorf("deptree: error reading the json file %s, %s", coreModulesPath, err)
 	}
+
 	err = json.Unmarshal(data, &r.coreModules)
 	if err != nil {
 		return nil, fmt.Errorf("deptree: error decoding the json file %s, %s", coreModulesPath, err)
 	}
-	r.cache = make(map[string]*Distribution)
+
 	return r, nil
 }
 
+//Resolve returns the distribution list with their dependency tree.
 func (r *perlDepTreeResolver) Resolve(distributions ...string) (Distributions, error) {
 	var result Distributions
 	for _, d := range distributions {
@@ -136,6 +141,7 @@ func (r *perlDepTreeResolver) getRequiresModules(dist string) (map[string]string
 	return meta.Prereqs.Runtime.Requires, nil
 }
 
+//filterCoreModules returns the list modules filtered by the modules present in the core modules.
 func (r *perlDepTreeResolver) filterCoreModules(modules map[string]string) []string {
 	var result []string
 	for m := range modules {

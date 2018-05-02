@@ -8,6 +8,7 @@ import (
 
 //Resolver defined the methods of a dependency tree resolver.
 type Resolver interface {
+	//Resolve returns the distribution list with their dependency tree.
 	Resolve(distributions ...string) (Distributions, error)
 }
 
