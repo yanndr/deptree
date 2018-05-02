@@ -55,7 +55,6 @@ func New(path string) (Resolver, error) {
 	return r, nil
 }
 
-//Resolve returns the distribution list with their dependency tree.
 func (r *perlDepTreeResolver) Resolve(distributions ...string) (Distributions, error) {
 	var result Distributions
 	for _, d := range distributions {
@@ -107,7 +106,6 @@ func (r *perlDepTreeResolver) getDependencies(distribution string) ([]string, er
 
 //getDistribution returns the distribution name of a module.
 func (r *perlDepTreeResolver) getDistribution(module string) (string, error) {
-
 	if val, ok := r.distributionMap[module]; ok {
 		return val, nil
 	}
@@ -141,7 +139,8 @@ func (r *perlDepTreeResolver) getRequiresModules(dist string) (map[string]string
 	return meta.Prereqs.Runtime.Requires, nil
 }
 
-//filterCoreModules returns the list modules filtered by the modules present in the core modules.
+//filterCoreModules returns the list of modules passed to the method
+// filtered by the modules present in the core modules.
 func (r *perlDepTreeResolver) filterCoreModules(modules map[string]string) []string {
 	var result []string
 	for m := range modules {

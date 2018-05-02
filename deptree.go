@@ -1,3 +1,6 @@
+//Package deptree is a package that resolve dependecy tree for package/distributions
+//
+// So far only a perl implementation is available.
 package deptree
 
 import (
@@ -8,19 +11,19 @@ import (
 
 //Resolver defined the methods of a dependency tree resolver.
 type Resolver interface {
-	//Resolve returns the distribution list with their dependency tree.
+	//Resolve returns the distribution list with their dependencies.
 	Resolve(distributions ...string) (Distributions, error)
 }
 
-//Distribution or package is the representation of a distrubition.
-// the name of the distribution its dependencies.
+//Distribution is the representation of a distribution.
+// It contains the name of the distribution and a list of its dependencies.
 type Distribution struct {
 	Name         string
 	Dependencies Distributions
 }
 
 //addDependencies add a list of dependencies to the distribution
-//it inserts the dependencies ordered by name.
+//it inserts the dependencies ordered by name for a more efficient search/insert.
 func (d *Distribution) addDependencies(distributions ...*Distribution) {
 	for _, dis := range distributions {
 
@@ -44,8 +47,8 @@ func (d *Distribution) addDependencies(distributions ...*Distribution) {
 type Distributions []*Distribution
 
 //ToJSON export the dependency tree to a JSON format
-//with the indentantion ident. if the ident is empty, the
-//JSON will be render in one line.
+//with the indentantion passed as parameter ident.
+//if the ident is empty, the JSON will be render in one line.
 func (d Distributions) ToJSON(indent string) string {
 	var buffer bytes.Buffer
 	d.toJSON(&buffer, indent, 0)
