@@ -1,14 +1,11 @@
 build:
 	go build ./cmd/deptree
 
+install:
+	go install ./cmd/deptree
+
 docker:
 	docker build -t deptree .
 
 test:
-	go test -race  -tags="unit integration" ./...
-
-test-unit:
-	go test -race -tags unit ./...
-
-test-integration:
-	go test -race -tags integration ./...
+	go test -race   ./...
