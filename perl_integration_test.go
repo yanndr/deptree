@@ -1,9 +1,11 @@
-package deptree
+package deptree_test
 
 import (
 	"fmt"
 	"io/ioutil"
 	"testing"
+
+	"bitbucket.org/yanndr/deptree"
 )
 
 func TestResolve(t *testing.T) {
@@ -42,7 +44,7 @@ func TestResolve(t *testing.T) {
 		},
 	}
 
-	dt, err := New("./cmd/deptree/data/")
+	dt, err := deptree.New("cmd/deptree/data")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,7 +67,7 @@ func TestResolve(t *testing.T) {
 
 func BenchmarkResolveOneByOne(b *testing.B) {
 	path := "./cmd/deptree/data/"
-	dt, err := New(path)
+	dt, err := deptree.New(path)
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -90,7 +92,7 @@ func BenchmarkResolveOneByOne(b *testing.B) {
 
 func BenchmarkResolveAllAtOnce(b *testing.B) {
 	path := "./cmd/deptree/data/"
-	dt, err := New(path)
+	dt, err := deptree.New(path)
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -120,7 +122,7 @@ func BenchmarkResolveAllAtOnce(b *testing.B) {
 
 func BenchmarkResolveScale(b *testing.B) {
 	path := "./cmd/deptree/data/"
-	dt, err := New(path)
+	dt, err := deptree.New(path)
 	if err != nil {
 		b.Fatal(err)
 	}

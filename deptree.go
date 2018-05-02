@@ -2,9 +2,7 @@ package deptree
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
-	"os"
 )
 
 //Resolver defined the methods of a dependency tree resolver.
@@ -68,27 +66,4 @@ func newline(dst *bytes.Buffer, indent string, depth int) {
 	for i := 0; i < depth; i++ {
 		dst.WriteString(indent)
 	}
-}
-
-func decodeJSONFromFile(v interface{}, path string) error {
-
-	if _, err := os.Stat(path); err != nil {
-		if os.IsNotExist(err) {
-			return err
-		}
-		return fmt.Errorf("deptree: error finding the file %s , %s", path, err)
-	}
-
-	file, err := os.Open(path)
-	if err != nil {
-		return fmt.Errorf("deptree: error opening the file %s , %s", path, err)
-	}
-	decoder := json.NewDecoder(file)
-
-	err = decoder.Decode(v)
-	if err != nil {
-		return fmt.Errorf("deptree: error decoding the the file %s, %s", file.Name(), err)
-	}
-
-	return nil
 }

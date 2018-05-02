@@ -1,7 +1,9 @@
 package deptree
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"sort"
 )
@@ -17,21 +19,31 @@ type perlDepTreeResolver struct {
 	distributionMap map[string]string
 	coreModules     []string
 	cache           map[string]*Distribution
+	readFileFunc    func(string) ([]byte, error)
 }
 
 //New returns an instance of a perl dependency tree resolver.
 func New(path string) (Resolver, error) {
 	r := &perlDepTreeResolver{
-		path: path,
+		path:         path,
+		readFileFunc: ioutil.ReadFile,
 	}
 	distroMapPath := fmt.Sprintf("%s/%s", path, distroMapFile)
-	err := decodeJSONFromFile(&r.distributionMap, distroMapPath)
+	data, err := r.readFileFunc(distroMapPath)
+	if err != nil {
+		return nil, fmt.Errorf("deptree: error reading the json file %s, %s", distroMapPath, err)
+	}
+	err = json.Unmarshal(data, &r.distributionMap)
 	if err != nil {
 		return nil, fmt.Errorf("deptree: error decoding the json file %s, %s", distroMapPath, err)
 	}
 
 	coreModulesPath := fmt.Sprintf("%s/%s", path, coreModulesFile)
-	err = decodeJSONFromFile(&r.coreModules, coreModulesPath)
+	data, err = r.readFileFunc(coreModulesPath)
+	if err != nil {
+		return nil, fmt.Errorf("deptree: error reading the json file %s, %s", coreModulesPath, err)
+	}
+	err = json.Unmarshal(data, &r.coreModules)
 	if err != nil {
 		return nil, fmt.Errorf("deptree: error decoding the json file %s, %s", coreModulesPath, err)
 	}
@@ -118,13 +130,19 @@ func (r *perlDepTreeResolver) getRequiresModules(dist string) (map[string]string
 	}{}
 
 	path := fmt.Sprintf("%s/%s/%s", r.path, dist, metaJSONFile)
-	err := decodeJSONFromFile(meta, path)
+	data, err := r.readFileFunc(path)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, DistributionNotFoundError{dist, err}
 		}
-		return nil, fmt.Errorf("deptree: could not decode the file %s, %v", path, err)
+		return nil, fmt.Errorf("deptree: could not open the file %s, %v", path, err)
 	}
+
+	err = json.Unmarshal(data, meta)
+	if err != nil {
+		return nil, fmt.Errorf("deptree: error decoding the json file %s, %s", path, err)
+	}
+
 	return meta.Prereqs.Runtime.Requires, nil
 }
 

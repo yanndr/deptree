@@ -5,6 +5,47 @@ import (
 	"testing"
 )
 
+func fakeReadFile(path string) ([]byte, error) {
+
+	if path == "/distrib1/META.json" {
+		return []byte(`{
+			"prereqs": {
+			  "runtime": {
+				"requires": {
+				  "module2": ""
+				}
+			  }
+			}
+		  }
+		  `), nil
+	} else if path == "/distrib2/META.json" {
+		return []byte(`{
+			"prereqs": {
+			  "runtime": {
+				"requires": {
+				}
+			  }
+			}
+		  }
+		  `), nil
+	}
+	return nil, nil
+}
+func TestResolve(t *testing.T) {
+	r := perlDepTreeResolver{
+		coreModules:     []string{"module1", "module2"},
+		distributionMap: map[string]string{"module1": "distrib1", "module2": "distrib2"},
+		cache:           make(map[string]*Distribution),
+		readFileFunc:    fakeReadFile,
+	}
+
+	res, err := r.Resolve("distrib1")
+	if err != nil {
+		t.Fatalf("unexpected error %v", err)
+	}
+	fmt.Println(len(res))
+}
+
 func TestFilterCoreModules(t *testing.T) {
 	tt := []struct {
 		name   string
