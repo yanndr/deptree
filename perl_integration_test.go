@@ -1,6 +1,7 @@
 package deptree
 
 import (
+	"fmt"
 	"io/ioutil"
 	"testing"
 )
@@ -114,5 +115,30 @@ func BenchmarkResolveAllAtOnce(b *testing.B) {
 			b.Fatal(err)
 		}
 
+	}
+}
+
+func BenchmarkResolveScale(b *testing.B) {
+	path := "./cmd/deptree/data/"
+	dt, err := New(path)
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	distribution := "DateTime"
+
+	for n := 1; n <= 1024; n *= 2 {
+		var test []string
+		for i := 0; i < n; i++ {
+			test = append(test, distribution)
+		}
+		b.Run(fmt.Sprintf("n=%d", n), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				_, err := dt.Resolve(test...)
+				if err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
 	}
 }
