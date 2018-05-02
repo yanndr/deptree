@@ -64,13 +64,7 @@ func (r *perlDepTreeResolver) Resolve(distributions ...string) (Distributions, e
 		result = append(result, dist)
 		dependencies, err := r.getDependencies(d)
 		if err != nil {
-			if _, ok := err.(DistributionNotFoundError); ok {
-				return nil, err
-			}
-			if _, ok := err.(ModuleNotFoundError); ok {
-				return nil, err
-			}
-			return nil, fmt.Errorf("deptree: can't get dependencies of %s: %v", d, err)
+			return nil, err
 		}
 
 		deps, err := r.Resolve(dependencies...)
@@ -78,11 +72,7 @@ func (r *perlDepTreeResolver) Resolve(distributions ...string) (Distributions, e
 			return nil, err
 		}
 
-		for _, dep := range deps {
-			if !dist.contains(dep) {
-				dist.Dependencies = append(dist.Dependencies, dep)
-			}
-		}
+		dist.addDependencies(deps...)
 
 		r.cache[d] = dist
 	}

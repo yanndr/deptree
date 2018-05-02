@@ -3,6 +3,7 @@ package deptree
 import (
 	"bytes"
 	"fmt"
+	"sort"
 )
 
 //Resolver defined the methods of a dependency tree resolver.
@@ -17,13 +18,25 @@ type Distribution struct {
 	Dependencies Distributions
 }
 
-func (d Distribution) contains(dist *Distribution) bool {
-	for _, dep := range d.Dependencies {
-		if dep.Name == dist.Name {
-			return true
+//addDependencies add a list of dependencies to the distribution
+//it inserts the dependencies ordered by name.
+func (d *Distribution) addDependencies(distributions ...*Distribution) {
+	for _, dis := range distributions {
+
+		i := sort.Search(len(d.Dependencies), func(i int) bool { return d.Dependencies[i].Name >= dis.Name })
+
+		if i == len(d.Dependencies) { //not found and it is the biggest value
+			d.Dependencies = append(d.Dependencies, dis)
+			continue
 		}
+		if d.Dependencies[i].Name == dis.Name { // already in the list
+			continue
+		}
+
+		d.Dependencies = append(d.Dependencies, &Distribution{})
+		copy(d.Dependencies[i+1:], d.Dependencies[i:])
+		d.Dependencies[i] = dis
 	}
-	return false
 }
 
 //Distributions is an array of distribution that represent the tree of dependecies for distributions.
