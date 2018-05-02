@@ -1,6 +1,7 @@
 package deptree
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 )
@@ -28,22 +29,59 @@ func fakeReadFile(path string) ([]byte, error) {
 			}
 		  }
 		  `), nil
+	} else if path == "/distrib3/META.json" {
+		return []byte(`{
+			"prereqs": {
+			  "runtime": {
+				"requires": {
+					"module4":""
+				}
+			  }
+			}
+		  }
+		  `), nil
 	}
-	return nil, nil
+	return []byte("{}"), nil
 }
+
+var distrib2 = &Distribution{
+	Name: "distrib2",
+}
+
+var distrib1 = &Distribution{
+	Name:         "distrib1",
+	Dependencies: Distributions{distrib2},
+}
+
 func TestResolve(t *testing.T) {
+	tt := []struct {
+		name   string
+		input  []string
+		output Distributions
+		err    error
+	}{
+		{"normal", []string{"distrib1"}, Distributions{distrib1}, nil},
+		{"error module", []string{"distrib3"}, nil, ModuleNotFoundError{"module4", errors.New("module module4 not present on distribution map module-distro-map.json")}},
+	}
+
 	r := perlDepTreeResolver{
-		coreModules:     []string{"module1", "module2"},
+		coreModules:     []string{"module3"},
 		distributionMap: map[string]string{"module1": "distrib1", "module2": "distrib2"},
 		cache:           make(map[string]*Distribution),
 		readFileFunc:    fakeReadFile,
 	}
 
-	res, err := r.Resolve("distrib1")
-	if err != nil {
-		t.Fatalf("unexpected error %v", err)
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			res, err := r.Resolve(tc.input...)
+			handleError(t, err, tc.err)
+
+			if res.ToJSON("") != tc.output.ToJSON("") {
+				t.Fatalf("error got %s, expected %s", res.ToJSON(""), tc.output.ToJSON(""))
+			}
+		})
 	}
-	fmt.Println(len(res))
+
 }
 
 func TestFilterCoreModules(t *testing.T) {
@@ -97,17 +135,21 @@ func TestGetDistribution(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			result, err := r.getDistribution(tc.input)
 
-			if err != nil && tc.err == nil {
-				t.Errorf("expected no error, got error \"%v\"", err)
-			} else if tc.err != nil && err == nil {
-				t.Errorf("expected error \"%v\", got no error", tc.err)
-			} else if tc.err != nil && err.Error() != tc.err.Error() {
-				t.Errorf("expected error \"%v\", got error \"%v\"", tc.err, err)
-			}
+			handleError(t, err, tc.err)
 
 			if result != tc.output {
 				t.Fatalf("error expected %v  got %v", tc.output, result)
 			}
 		})
+	}
+}
+
+func handleError(t *testing.T, err, expectedError error) {
+	if err != nil && expectedError == nil {
+		t.Errorf("expected no error, got error \"%v\"", err)
+	} else if expectedError != nil && err == nil {
+		t.Errorf("expected error \"%v\", got no error", expectedError)
+	} else if expectedError != nil && err.Error() != expectedError.Error() {
+		t.Errorf("expected error \"%v\", got error \"%v\"", expectedError, err)
 	}
 }

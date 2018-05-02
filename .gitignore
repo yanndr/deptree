@@ -1,4 +1,5 @@
 deptree
 debug
+debug.*
 trace.*
 .vscode

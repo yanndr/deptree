@@ -65,6 +65,35 @@ func TestResolve(t *testing.T) {
 	}
 }
 
+func TestJson(t *testing.T) {
+
+	tt := []struct {
+		name   string
+		input  []string
+		indent string
+		output string
+	}{
+		{"Specio", []string{"Specio"}, "\t", "{\n\t\"Specio\": {\n\t\t\"Devel-StackTrace\": {},\n\t\t\"Eval-Closure\": {},\n\t\t\"MRO-Compat\": {},\n\t\t\"Module-Runtime\": {},\n\t\t\"Role-Tiny\": {},\n\t\t\"Sub-Quote\": {},\n\t\t\"Test-Fatal\": {\n\t\t\t\"Try-Tiny\": {}\n\t\t},\n\t\t\"Try-Tiny\": {}\n\t}\n}"},
+	}
+	dt, err := deptree.New("cmd/deptree/data")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			r, err := dt.Resolve(tc.input...)
+			if err != nil {
+				t.Fatal(err)
+			}
+			js := r.ToJSON(tc.indent)
+			if js != tc.output {
+				t.Fatalf("expected: \n%s, got \n%s", tc.output, js)
+			}
+		})
+	}
+}
+
 func BenchmarkResolveOneByOne(b *testing.B) {
 	path := "./cmd/deptree/data/"
 	dt, err := deptree.New(path)
