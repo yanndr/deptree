@@ -1,6 +1,7 @@
 package deptree
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -44,7 +45,7 @@ func TestGetDistribution(t *testing.T) {
 		err    error
 	}{
 		{"Present", "module1", "distrib1", nil},
-		{"not Present", "module3", "", DistributionNotFoundError{name: "modules3"}},
+		{"not Present", "module3", "", ModuleNotFoundError{"module3", fmt.Errorf("module %s not present on distribution map %s", "module3", distroMapFile)}},
 	}
 
 	r := perlDepTreeResolver{
@@ -55,7 +56,11 @@ func TestGetDistribution(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			result, err := r.getDistribution(tc.input)
 
-			if err != tc.err {
+			if err != nil && tc.err == nil {
+				t.Errorf("expected no error, got error \"%v\"", err)
+			} else if tc.err != nil && err == nil {
+				t.Errorf("expected error \"%v\", got no error", tc.err)
+			} else if tc.err != nil && err.Error() != tc.err.Error() {
 				t.Errorf("expected error \"%v\", got error \"%v\"", tc.err, err)
 			}
 

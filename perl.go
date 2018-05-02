@@ -27,13 +27,13 @@ func New(path string) (Resolver, error) {
 	distroMapPath := fmt.Sprintf("%s/%s", path, distroMapFile)
 	err := decodeJSONFromFile(&r.distributionMap, distroMapPath)
 	if err != nil {
-		return nil, fmt.Errorf("error decoding the json file %s, %s", distroMapPath, err)
+		return nil, fmt.Errorf("deptree: error decoding the json file %s, %s", distroMapPath, err)
 	}
 
 	coreModulesPath := fmt.Sprintf("%s/%s", path, coreModulesFile)
 	err = decodeJSONFromFile(&r.coreModules, coreModulesPath)
 	if err != nil {
-		return nil, fmt.Errorf("error decoding the json file %s, %s", coreModulesPath, err)
+		return nil, fmt.Errorf("deptree: error decoding the json file %s, %s", coreModulesPath, err)
 	}
 	r.cache = make(map[string]*Distribution)
 	return r, nil
@@ -55,7 +55,10 @@ func (r *perlDepTreeResolver) Resolve(distributions ...string) (Distributions, e
 			if _, ok := err.(DistributionNotFoundError); ok {
 				return nil, err
 			}
-			return nil, fmt.Errorf("resolve: can't get dependencies of %s: %v", d, err)
+			if _, ok := err.(ModuleNotFoundError); ok {
+				return nil, err
+			}
+			return nil, fmt.Errorf("deptree: can't get dependencies of %s: %v", d, err)
 		}
 
 		deps, err := r.Resolve(dependencies...)
@@ -101,7 +104,7 @@ func (r *perlDepTreeResolver) getDistribution(module string) (string, error) {
 	if val, ok := r.distributionMap[module]; ok {
 		return val, nil
 	}
-	return "", DistributionNotFoundError{name: "modules3"}
+	return "", ModuleNotFoundError{module, fmt.Errorf("module %s not present on distribution map %s", module, distroMapFile)}
 }
 
 //getRequiresModules returns a map of requires modules/version for a distribution.
@@ -120,7 +123,7 @@ func (r *perlDepTreeResolver) getRequiresModules(dist string) (map[string]string
 		if os.IsNotExist(err) {
 			return nil, DistributionNotFoundError{dist, err}
 		}
-		return nil, fmt.Errorf("get modules error: could not decode the file %s, %v", path, err)
+		return nil, fmt.Errorf("deptree: could not decode the file %s, %v", path, err)
 	}
 	return meta.Prereqs.Runtime.Requires, nil
 }

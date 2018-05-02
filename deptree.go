@@ -31,17 +31,6 @@ func (d Distribution) contains(dist *Distribution) bool {
 //Distributions is an array of distribution that represent the tree of dependecies for distributions.
 type Distributions []*Distribution
 
-//DistributionNotFoundError is an error when the distribution could not be found.
-// Either it doesn't exist in the module distribution map or the folder doesn't exist.
-type DistributionNotFoundError struct {
-	name string
-	err  error
-}
-
-func (e DistributionNotFoundError) Error() string {
-	return fmt.Sprintf("distribution %s not found: %v", e.name, e.err)
-}
-
 //ToJSON export the dependency tree to a JSON format
 //with the indentantion ident. if the ident is empty, the
 //JSON will be render in one line.
@@ -87,18 +76,18 @@ func decodeJSONFromFile(v interface{}, path string) error {
 		if os.IsNotExist(err) {
 			return err
 		}
-		return fmt.Errorf("error finding the file %s , %s", path, err)
+		return fmt.Errorf("deptree: error finding the file %s , %s", path, err)
 	}
 
 	file, err := os.Open(path)
 	if err != nil {
-		return fmt.Errorf("error opening the file %s , %s", path, err)
+		return fmt.Errorf("deptree: error opening the file %s , %s", path, err)
 	}
 	decoder := json.NewDecoder(file)
 
 	err = decoder.Decode(v)
 	if err != nil {
-		return fmt.Errorf("error decoding the the file %s, %s", file.Name(), err)
+		return fmt.Errorf("deptree: error decoding the the file %s, %s", file.Name(), err)
 	}
 
 	return nil
