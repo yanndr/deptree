@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"sort"
+	"sync"
 )
 
 const (
@@ -55,32 +56,37 @@ func New(path string) (Resolver, error) {
 	return r, nil
 }
 
+var mutex = sync.RWMutex{}
+
 func (r *perlDepTreeResolver) Resolve(distributions ...string) (Distributions, error) {
-	var result Distributions
+	result := Distributions{}
+	wg := sync.WaitGroup{}
 	for _, d := range distributions {
+		wg.Add(1)
+		go func(d string) {
+			defer wg.Done()
+			mutex.RLock()
+			if v, ok := r.cache[d]; ok {
+				result = append(result, v)
+				mutex.RUnlock()
+				return
+			}
+			mutex.RUnlock()
 
-		if v, ok := r.cache[d]; ok {
-			result = append(result, v)
-			continue
-		}
+			dist := &Distribution{Name: d}
+			result = append(result, dist)
+			dependencies, _ := r.getDependencies(d)
 
-		dist := &Distribution{Name: d}
-		result = append(result, dist)
-		dependencies, err := r.getDependencies(d)
-		if err != nil {
-			return nil, err
-		}
+			deps, _ := r.Resolve(dependencies...)
 
-		deps, err := r.Resolve(dependencies...)
-		if err != nil {
-			return nil, err
-		}
+			dist.addDependencies(deps...)
+			mutex.Lock()
+			r.cache[d] = dist
+			mutex.Unlock()
+		}(d)
 
-		dist.addDependencies(deps...)
-
-		r.cache[d] = dist
 	}
-
+	wg.Wait()
 	return result, nil
 }
 
