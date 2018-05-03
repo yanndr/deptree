@@ -1,4 +1,4 @@
-// Command line interface to resolve perls distribution dependency tree.
+// Command line interface to resolve Perl distributions dependency tree.
 package main
 
 import (
@@ -27,7 +27,7 @@ func main() {
 	)
 
 	flag.StringVar(&path, "path", "./data", "The path to the CPAN folder.")
-	flag.Var(&names, "name", "Distribition name to resolve; this flag is mandatory you need to define it once; you can define this flag multiple time.")
+	flag.Var(&names, "name", "Distribition name to resolve; this flag is mandatory. You need to define it once but you can also define it multiple times.")
 	flag.Usage = usage
 
 	flag.Parse()
@@ -55,7 +55,7 @@ func main() {
 
 func usage() {
 	fmt.Fprintf(os.Stderr, "Usage: %s  [OPTIONS] \n\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "This command displays the tree of dependency of one or multiple Perl distributions.\neg: %s -name DateTime -name Specio\n\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "This command displays the dependency tree of one or multiple Perl distributions.\neg: %s -name DateTime -name Specio\n\n", os.Args[0])
 	fmt.Fprintln(os.Stderr, "OPTIONS:")
 	flag.PrintDefaults()
 	fmt.Fprintln(os.Stderr, "")
