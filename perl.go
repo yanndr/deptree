@@ -18,7 +18,7 @@ type perlDepTreeResolver struct {
 	path            string
 	distributionMap map[string]string
 	coreModules     []string
-	cache           map[string]*Distribution
+	cache           Distributions
 	readFileFunc    func(string) ([]byte, error)
 }
 
@@ -27,7 +27,7 @@ func New(path string) (Resolver, error) {
 	r := &perlDepTreeResolver{
 		path:         path,
 		readFileFunc: ioutil.ReadFile,
-		cache:        make(map[string]*Distribution),
+		cache:        make(Distributions),
 	}
 
 	distroMapPath := fmt.Sprintf("%s/%s", path, distroMapFile)
@@ -56,16 +56,15 @@ func New(path string) (Resolver, error) {
 }
 
 func (r *perlDepTreeResolver) Resolve(distributions ...string) (Distributions, error) {
-	var result Distributions
+	var result = make(Distributions)
 	for _, d := range distributions {
 
 		if v, ok := r.cache[d]; ok {
-			result = append(result, v)
+			result[d] = v
 			continue
 		}
 
-		dist := &Distribution{Name: d}
-		result = append(result, dist)
+		result[d] = make(Distributions)
 		dependencies, err := r.getDependencies(d)
 		if err != nil {
 			return nil, err
@@ -76,9 +75,9 @@ func (r *perlDepTreeResolver) Resolve(distributions ...string) (Distributions, e
 			return nil, err
 		}
 
-		dist.addDependencies(deps...)
+		result[d] = deps
 
-		r.cache[d] = dist
+		r.cache[d] = deps
 	}
 
 	return result, nil
