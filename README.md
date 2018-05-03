@@ -12,7 +12,8 @@ git clone git clone https://yanndr@bitbucket.org/yanndr/deptree.git $GOPATH/src/
 ```
 Note: as this is a private repository, ```go get``` won't work.
 
-2. once the source on your computer:
+
+2. Once the source is on your computer:
 ```
 make install
 ```
@@ -21,34 +22,39 @@ or
 go build ./cmd/deptree
 ```
 ## Usage
-This program need access to a CPAN folder to run successfully, one is provided here ./cmd/deptree/data. 
-You can define the path of the CPAN folder with the flag -path, by default the path is set to ./data. If you run the program directely from the ./cmd/deptree folder you won't have to defne the -path flag.
 
-Usage: deptree -name distribution
+This program needs access to a CPAN folder to run successfully; one is provided here ./cmd/deptree/data. 
+You can define the path of the CPAN folder with the flag -path. By default the path is set to ./data. If you run the program directely from the ./cmd/deptree folder, you won't have to define the -path flag.
+
+Example:
+```
+deptree -name distribution
+
+OPTIONS:
   -name value
-        Distribition name to resolve; this flag is mandatory you need to define it once; you can define this flag multiple time.
+        Distribition name to resolve; this flag is mandatory. You need to define it once but you can also define it multiple times.
   -path string
         The path to the CPAN folder. (default "./data")
-
+```
 
 ```
 deptree -path path/to/cpan -name DateTime -name Specio
 ```
 
-### Docker
+## Docker
 You can aslo use the program with Docker. 
 First you'll have to make the docker image:
 ```
 make docker
 ```
 
-Once the docker image created you can run the program with the command:
+Once the docker image is created, you can run the program with the command:
 ```
 docker run --rm -it  deptree -name  DateTime 
 ```
-The docker images embed a data folder on the root folder, you don't have to specify the -path flag.
+The docker image embeds a data folder on the root folder, so you don't have to specify the -path flag.
 
-If you want to use a different path use the following syntax:
+If you want to use a different path, use the following syntax:
 ```
 docker run --rm -it -v $PWD/cmd/deptree/data:/mydata  deptree -name  DateTime -path ./mydata
 ```
