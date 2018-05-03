@@ -1,4 +1,4 @@
-// Command line interface to resolve perls distribution dependcy tree
+// Command line interface to resolve perls distribution dependency tree.
 package main
 
 import (
@@ -54,8 +54,9 @@ func main() {
 }
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "Usage: %s -name distribution \n\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "Usage: %s  [OPTIONS] \n\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "This command displays the tree of dependency of one or multiple Perl distributions.\neg: %s -name DateTime -name Specio\n\n", os.Args[0])
+	fmt.Fprintln(os.Stderr, "OPTIONS:")
 	flag.PrintDefaults()
 	fmt.Fprintln(os.Stderr, "")
 }
