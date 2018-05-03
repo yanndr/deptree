@@ -5,33 +5,16 @@ A command line client is available on the cmd\deptree folder.
 
 ## Installing
 
-1- Clone the repository in the folder $GOPATH/src/bitbucket.org/yanndr/
-
-
-```bash
-git clone git clone https://yanndr@bitbucket.org/yanndr/deptree.git $GOPATH/src/bitbucket.org/yanndr/
-```
-Note: as this is a private repository, ```go get``` won't work.
-
-
-2- Once the source is on your computer:
-```bash
-make install
-```
-or 
-```bash 
-go build ./cmd/deptree
-```
+1. Clone the repository in the folder $GOPATH/src/bitbucket.org/yanndr/ `git clone git clone https://yanndr@bitbucket.org/yanndr/deptree.git $GOPATH/src/bitbucket.org/yanndr/` Note: as this is a private repository, `go get` won't work.
+2. Build/install the application :`make install` or `go build ./cmd/deptree`
 
 ## Usage
 
 This program needs access to a CPAN folder to run successfully; one is provided here ./cmd/deptree/data. 
 You can define the path of the CPAN folder with the flag -path. By default the path is set to ./data. If you run the program directely from the ./cmd/deptree folder, you won't have to define the -path flag.
 
-Example:
 ```
-deptree -name distribution
-
+deptree -path path/to/cpan -name DateTime -name Specio
 OPTIONS:
   -name value
         Distribition name to resolve; this flag is mandatory. You need to define it once but you can also define it multiple times.
@@ -39,9 +22,12 @@ OPTIONS:
         The path to the CPAN folder. (default "./data")
 ```
 
+Example:
 ```
-deptree -path path/to/cpan -name DateTime -name Specio
+deptree -name DateTime
 ```
+
+
 
 ## Docker
 You can aslo use the program with Docker. 
