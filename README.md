@@ -7,17 +7,21 @@ A command line client is available on the cmd\deptree folder.
 
 1- Clone the repository in the folder $GOPATH/src/bitbucket.org/yanndr/
 
-> 
-```
+
+```bash
 git clone git clone https://yanndr@bitbucket.org/yanndr/deptree.git $GOPATH/src/bitbucket.org/yanndr/
 ```
 Note: as this is a private repository, ```go get``` won't work.
 
 
 2- Once the source is on your computer:
->`make install`
->or 
->`go build ./cmd/deptree`
+```bash
+make install
+```
+or 
+```bash 
+go build ./cmd/deptree
+```
 
 ## Usage
 
