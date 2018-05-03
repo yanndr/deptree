@@ -35,7 +35,10 @@ First you'll have to make the docker image:
 ```
 make docker
 ```
-
+or 
+```
+docker build -t deptree .
+```
 Once the docker image is created, you can run the program with the command:
 ```
 docker run --rm -it  deptree -name  DateTime 
